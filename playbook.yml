@@ -12,3 +12,8 @@
   hosts: poll
   roles:
     - poll
+
+- name: Worker Service
+  hosts: worker
+  roles:
+    - worker

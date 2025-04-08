@@ -1,0 +1,89 @@
+- name: Install prerequisites
+  apt:
+    name:
+      - wget
+      - gnupg
+      - software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Add Adoptium repository key
+  apt_key:
+    url: https://packages.adoptium.net/artifactory/api/gpg/key/public
+    state: present
+
+- name: Add Adoptium repository
+  apt_repository:
+    repo: "deb https://packages.adoptium.net/artifactory/deb {{ ansible_distribution_release }} main"
+    state: present
+    filename: adoptium
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install Java 21
+  apt:
+    name: temurin-21-jdk
+    state: present
+
+- name: Set JAVA_HOME
+  lineinfile:
+    path: /etc/environment
+    line: "JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64"
+    create: yes
+
+- name: Upload application archive
+  copy:
+    src: worker.tar
+    dest: /opt/worker.tar
+
+- name: Create application directory
+  file:
+    path: /opt/app
+    state: directory
+    mode: '0755'
+
+- name: Check if application is already extracted
+  stat:
+    path: /opt/app/pom.xml
+  register: app_extracted
+
+- name: Unzip application
+  unarchive:
+    src: /opt/worker.tar
+    dest: /opt/app
+    remote_src: yes
+  when: not app_extracted.stat.exists
+
+- name: Install Maven
+  apt:
+    name: maven
+    state: present
+    update_cache: yes
+
+- name: Build worker with Maven
+  command: mvn package
+  args:
+    chdir: /opt/app
+    creates: /opt/app/target/worker-jar-with-dependencies.jar
+
+- name: Upload Systemd service file
+  template:
+    src: "{{ role_path }}/files/worker.service"
+    dest: /etc/systemd/system/worker.service
+
+- name: Reload Systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start the application
+  systemd:
+    name: worker
+    enabled: yes
+    state: started
+
+
+
+
+
