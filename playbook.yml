@@ -2,3 +2,8 @@
   hosts: all
   roles:
     - base
+
+- name: Install Redis
+  hosts: redis
+  roles:
+    - redis

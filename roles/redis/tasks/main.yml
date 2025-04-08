@@ -1,0 +1,21 @@
+- name: Install Redis
+  apt:
+    name: redis-server
+    state: present
+  register: redis_install_result
+
+- name: Configure Redis
+  copy:
+    src: redis.conf
+    dest: /etc/redis/redis.conf
+    owner: root
+    group: root
+    mode: '0644'
+  register: redis_conf_result
+
+- name: Restart Redis
+  systemd:
+    name: redis-server
+    state: restarted
+    enabled: yes
+  when: redis_install_result.changed or redis_conf_result.changed
