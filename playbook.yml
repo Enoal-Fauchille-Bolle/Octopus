@@ -7,3 +7,8 @@
   hosts: redis
   roles:
     - redis
+
+- name: Poll Service
+  hosts: poll
+  roles:
+    - poll

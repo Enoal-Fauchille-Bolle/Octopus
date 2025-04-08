@@ -1,0 +1,65 @@
+- name: Install Python
+  apt:
+    name: python3
+    state: present
+  register: python_install_result
+
+- name: Install PIP
+  apt:
+    name: python3-pip
+    state: present
+  register: pip_install_result
+
+- name: Install python3-venv
+  apt:
+    name: python3-venv
+    state: present
+
+- name: Upload application archive
+  copy:
+    src: poll.tar
+    dest: /opt/poll.tar
+
+- name: Create application directory
+  file:
+    path: /opt/app
+    state: directory
+    mode: '0755'
+  register: app_dir_result
+
+- name: Check if application is already extracted
+  stat:
+    path: /opt/app/app.py
+  register: app_extracted
+
+- name: Unzip application
+  unarchive:
+    src: /opt/poll.tar
+    dest: /opt/app
+    remote_src: yes
+  when: not app_extracted.stat.exists
+
+- name: Create virtual environment
+  command: python3 -m venv /opt/app/venv
+  args:
+    creates: /opt/app/venv/bin/python
+
+- name: Install dependencies
+  pip:
+    requirements: /opt/app/requirements.txt
+    virtualenv: /opt/app/venv
+
+- name: Upload Systemd service file
+  template:
+    src: "{{ role_path }}/files/poll.service"
+    dest: /etc/systemd/system/poll.service
+
+- name: Reload Systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start the application
+  systemd:
+    name: poll
+    enabled: yes
+    state: started
