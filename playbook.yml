@@ -1,0 +1,4 @@
+- name: Configure all servers
+  hosts: all
+  roles:
+    - base
