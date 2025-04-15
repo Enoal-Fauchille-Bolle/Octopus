@@ -48,7 +48,7 @@
 
 - name: Upload Systemd service file
   template:
-    src: "{{ role_path }}/files/poll.service"
+    src: "{{ role_path }}/files/poll.service.j2"
     dest: /etc/systemd/system/poll.service
 
 - name: Reload Systemd

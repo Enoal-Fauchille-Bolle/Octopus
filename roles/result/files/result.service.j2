@@ -1,0 +1,19 @@
+[Unit]
+Description=My Awesome Node.js App
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node /opt/result/server.js
+Restart=always
+User=root
+Group=root
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=POSTGRES_HOST={{ postgres_host }}
+Environment=POSTGRES_PORT={{ postgres_port }}
+Environment=POSTGRES_DB={{ postgres_db }}
+Environment=POSTGRES_USER={{ postgres_user }}
+Environment=POSTGRES_PASSWORD={{ postgres_password }}
+WorkingDirectory=/opt/result
+
+[Install]
+WantedBy=multi-user.target

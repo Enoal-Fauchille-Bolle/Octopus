@@ -38,7 +38,7 @@
 
 - name: Upload Systemd service file
   template:
-    src: "{{ role_path }}/files/result.service"
+    src: "{{ role_path }}/files/result.service.j2"
     dest: /etc/systemd/system/result.service
 
 - name: Reload Systemd

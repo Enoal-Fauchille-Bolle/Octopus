@@ -1,0 +1,15 @@
+[Unit]
+Description=Poll Service
+After=network.target
+
+[Service]
+ExecStart=/opt/app/venv/bin/python3 /opt/app/app.py
+Restart=always
+User=root
+Group=root
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=REDIS_HOST={{ redis_host }}
+WorkingDirectory=/opt/app
+
+[Install]
+WantedBy=multi-user.target
