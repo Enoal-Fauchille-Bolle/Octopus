@@ -3,6 +3,11 @@
   roles:
     - base
 
+- name: Install PostgreSQL
+  hosts: postgresql
+  roles:
+    - postgresql
+
 - name: Install Redis
   hosts: redis
   roles:
@@ -17,3 +22,8 @@
   hosts: worker
   roles:
     - worker
+
+- name: Result Service
+  hosts: result
+  roles:
+    - result
