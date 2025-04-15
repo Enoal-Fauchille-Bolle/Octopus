@@ -12,6 +12,7 @@
   copy:
     src: result.tar
     dest: /opt/result.tar
+  register: result_archive
 
 - name: Create application directory
   file:
@@ -29,7 +30,8 @@
     src: /opt/result.tar
     dest: /opt/result
     remote_src: true
-  when: not app_extracted.stat.exists
+  when: result_archive.changed or (not app_extracted.stat.exists)
+  notify: Restart result service
 
 - name: Install dependencies
   npm:
@@ -40,6 +42,7 @@
   template:
     src: "{{ role_path }}/files/result.service.j2"
     dest: /etc/systemd/system/result.service
+  notify: Restart result service
 
 - name: Reload Systemd
   systemd:

@@ -1,0 +1,4 @@
+- name: Restart worker service
+  systemd:
+    name: worker
+    state: restarted

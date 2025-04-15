@@ -17,6 +17,7 @@
   copy:
     src: poll.tar
     dest: /opt/poll.tar
+  register: poll_archive
 
 - name: Create application directory
   file:
@@ -34,7 +35,8 @@
     src: /opt/poll.tar
     dest: /opt/app
     remote_src: yes
-  when: not app_extracted.stat.exists
+  when: poll_archive.changed or (not app_extracted.stat.exists)
+  notify: Restart poll service
 
 - name: Create virtual environment
   command: python3 -m venv /opt/app/venv
@@ -50,6 +52,7 @@
   template:
     src: "{{ role_path }}/files/poll.service.j2"
     dest: /etc/systemd/system/poll.service
+  notify: Restart poll service
 
 - name: Reload Systemd
   systemd:

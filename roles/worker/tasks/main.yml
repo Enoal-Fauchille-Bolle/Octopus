@@ -37,6 +37,7 @@
   copy:
     src: worker.tar
     dest: /opt/worker.tar
+  register: worker_archive
 
 - name: Create application directory
   file:
@@ -54,7 +55,8 @@
     src: /opt/worker.tar
     dest: /opt/app
     remote_src: yes
-  when: not app_extracted.stat.exists
+  when: worker_archive.changed or (not app_extracted.stat.exists)
+  notify: Restart worker service
 
 - name: Install Maven
   apt:
@@ -72,6 +74,7 @@
   template:
     src: "{{ role_path }}/files/worker.service.j2"
     dest: /etc/systemd/system/worker.service
+  notify: Restart worker service
 
 - name: Reload Systemd
   systemd:
