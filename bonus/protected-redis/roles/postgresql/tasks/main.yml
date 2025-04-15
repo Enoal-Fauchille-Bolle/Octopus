@@ -1,0 +1,99 @@
+- name: Set APT Key
+  become: true
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Set Repository for APT
+  ansible.builtin.apt_repository:
+    repo: deb http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main
+    state: present
+
+- name: Install PostgreSQL 16
+  apt:
+    name:
+      - postgresql-16
+      - postgresql-contrib-16
+      - libpq-dev
+      - python3-psycopg2
+    state: present
+    update_cache: true
+
+- name: Ensure PostgreSQL is started and enabled
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Create PostgreSQL user paul with minimal privileges
+  become: true
+  become_user: postgres
+  become_method: su
+  community.postgresql.postgresql_user:
+    name: "{{ postgres_user }}"
+    password: "{{ postgres_password }}"
+    encrypted: true
+    state: present
+    role_attr_flags: "NOSUPERUSER,NOCREATEDB,NOCREATEROLE,NOINHERIT"
+
+- name: Create PostgreSQL database paul
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: "{{ postgres_db }}"
+    owner: "{{ postgres_user }}"
+    state: present
+
+- name: Copy PostgreSQL configuration file
+  copy:
+    src: postgresql.conf
+    dest: /etc/postgresql/16/main/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: restart postgresql
+
+- name: Copy PostgreSQL client authentication configuration file
+  copy:
+    src: pg_hba.conf
+    dest: /etc/postgresql/16/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: restart postgresql
+
+- name: Copy schema.sql
+  copy:
+    src: schema.sql
+    dest: /tmp/schema.sql
+    owner: postgres
+    group: postgres
+    mode: "0640"
+
+- name: Check if table 'votes' exists
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_query:
+    db: "{{ postgres_db }}"
+    query: "SELECT to_regclass('public.votes') AS table_exists;"
+  register: votes_table
+
+- name: Apply database schema
+  become: true
+  become_user: postgres
+  become_method: sudo
+  shell: psql -d {{ postgres_db }} -f /tmp/schema.sql
+  args:
+    executable: /bin/bash
+  when: votes_table.query_result[0].table_exists is none
+
+- name: Grant specific permissions on votes table
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+    database: "{{ postgres_db }}"
+    type: table
+    obj: votes
+    role: "{{ postgres_user }}"
+    privs: SELECT,INSERT,UPDATE,DELETE
+    state: present

@@ -1,0 +1,29 @@
+- name: Configure all servers
+  hosts: all
+  roles:
+    - base
+
+- name: Install PostgreSQL
+  hosts: postgresql
+  roles:
+    - postgresql
+
+- name: Install Redis
+  hosts: redis
+  roles:
+    - redis
+
+- name: Worker Service
+  hosts: worker
+  roles:
+    - worker
+
+- name: Poll Service
+  hosts: poll
+  roles:
+    - poll
+
+- name: Result Service
+  hosts: result
+  roles:
+    - result

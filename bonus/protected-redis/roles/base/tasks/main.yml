@@ -1,0 +1,27 @@
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
+- name: Upgrade the system
+  apt:
+    upgrade: dist
+
+- name: Install essential packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - git
+      - curl
+      - unzip
+      - zsh
+    state: present
+
+- name: Set timezone
+  timezone:
+    name: Europe/Paris
+
+- name: Change root shell to Zsh
+  user:
+    name: root
+    shell: /bin/zsh

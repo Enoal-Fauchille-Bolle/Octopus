@@ -1,0 +1,55 @@
+- name: Install NodeJS
+  apt:
+    name: nodejs
+    state: present
+
+- name: Install NPM
+  apt:
+    name: npm
+    state: present
+
+- name: Upload application archive
+  copy:
+    src: result.tar
+    dest: /opt/result.tar
+  register: result_archive
+
+- name: Create application directory
+  file:
+    path: /opt/result
+    state: directory
+    mode: '0755'
+
+- name: Check if application is already extracted
+  stat:
+    path: /opt/result/package.json
+  register: app_extracted
+
+- name: Unzip application
+  unarchive:
+    src: /opt/result.tar
+    dest: /opt/result
+    remote_src: true
+  when: result_archive.changed or (not app_extracted.stat.exists)
+  notify: Restart result service
+
+- name: Install dependencies
+  npm:
+    path: /opt/result
+    state: present
+
+- name: Upload Systemd service file
+  template:
+    src: "{{ role_path }}/files/result.service.j2"
+    dest: /etc/systemd/system/result.service
+  notify: Restart result service
+
+- name: Reload Systemd
+  systemd:
+    daemon_reload: true
+
+- name: Enable and start the application
+  systemd:
+    name: result
+    enabled: true
+    state: started
