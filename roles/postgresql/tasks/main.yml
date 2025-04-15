@@ -70,6 +70,14 @@
     group: postgres
     mode: "0640"
 
+- name: Check if table 'votes' exists
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_query:
+    db: "{{ postgres_db }}"
+    query: "SELECT to_regclass('public.votes') AS table_exists;"
+  register: votes_table
+
 - name: Apply database schema
   become: true
   become_user: postgres
@@ -77,6 +85,7 @@
   shell: psql -d {{ postgres_db }} -f /tmp/schema.sql
   args:
     executable: /bin/bash
+  when: votes_table.query_result[0].table_exists is none
 
 - name: Grant specific permissions on votes table
   become: true
