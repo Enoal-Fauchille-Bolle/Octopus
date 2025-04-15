@@ -1,4 +1,4 @@
-- name: set apt key
+- name: Set APT Key
   become: true
   apt_key:
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
@@ -43,6 +43,15 @@
     name: "{{ postgres_db }}"
     owner: "{{ postgres_user }}"
     state: present
+
+- name: Copy PostgreSQL configuration file
+  copy:
+    src: postgresql.conf
+    dest: /etc/postgresql/16/main/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: restart postgresql
 
 - name: Copy PostgreSQL client authentication configuration file
   copy:
