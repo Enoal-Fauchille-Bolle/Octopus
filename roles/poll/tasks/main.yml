@@ -42,7 +42,7 @@
   ansible.builtin.pip:
     requirements: /opt/app/requirements.txt
     virtualenv: /opt/app/venv
-    virtualenv_python: python3
+    virtualenv_command: "python3 -m venv"
 
 - name: Upload Systemd service file
   template:
