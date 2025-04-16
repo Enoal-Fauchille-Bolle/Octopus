@@ -39,9 +39,10 @@
   notify: Restart poll service
 
 - name: Create virtual environment
-  command: python3 -m venv /opt/app/venv
-  args:
-    creates: /opt/app/venv/bin/python
+  ansible.builtin.pip:
+    requirements: /opt/app/requirements.txt
+    virtualenv: /opt/app/venv
+    virtualenv_python: python3
 
 - name: Install dependencies
   pip:

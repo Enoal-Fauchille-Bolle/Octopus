@@ -38,15 +38,11 @@
   when: poll_archive.changed or (not app_extracted.stat.exists)
   notify: Restart poll service
 
-- name: Create virtual environment
-  command: python3 -m venv /opt/app/venv
-  args:
-    creates: /opt/app/venv/bin/python
-
-- name: Install dependencies
-  pip:
+- name: Create virtual environment and install dependencies
+  ansible.builtin.pip:
     requirements: /opt/app/requirements.txt
     virtualenv: /opt/app/venv
+    virtualenv_python: python3
 
 - name: Upload Systemd service file
   template:
