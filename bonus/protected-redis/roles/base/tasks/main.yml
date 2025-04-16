@@ -15,6 +15,16 @@
       - curl
       - unzip
       - zsh
+      - python3
+      - python3-pip
+      - python3-venv
+      - ufw
+      - htop
+      - fail2ban
+      - net-tools
+      - lsof
+      - gnupg
+      - software-properties-common
     state: present
 
 - name: Set timezone
