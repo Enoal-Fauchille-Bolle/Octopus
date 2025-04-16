@@ -62,14 +62,6 @@
     mode: "0640"
   notify: restart postgresql
 
-- name: Copy schema.sql
-  copy:
-    src: schema.sql
-    dest: /tmp/schema.sql
-    owner: postgres
-    group: postgres
-    mode: "0640"
-
 - name: Check if table 'votes' exists
   become: true
   become_user: postgres
@@ -78,13 +70,12 @@
     query: "SELECT to_regclass('public.votes') AS table_exists;"
   register: votes_table
 
-- name: Apply database schema
+- name: Load schema.sql if not loaded already
   become: true
   become_user: postgres
-  become_method: sudo
-  shell: psql -d {{ postgres_db }} -f /tmp/schema.sql
-  args:
-    executable: /bin/bash
+  community.postgresql.postgresql_query:
+    db: "{{ postgres_db }}"
+    query: "{{ lookup('file', 'schema.sql') }}"
   when: votes_table.query_result[0].table_exists is none
 
 - name: Grant specific permissions on votes table
