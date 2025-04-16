@@ -44,12 +44,9 @@
     dest: /etc/systemd/system/result.service
   notify: Restart result service
 
-- name: Reload Systemd
-  systemd:
-    daemon_reload: true
-
 - name: Enable and start the application
   systemd:
+    daemon_reload: true
     name: result
     enabled: true
     state: started

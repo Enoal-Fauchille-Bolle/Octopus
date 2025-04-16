@@ -17,5 +17,5 @@
   systemd:
     name: redis-server
     state: restarted
-    enabled: yes
+    enabled: true
   when: redis_install_result.changed or redis_conf_result.changed

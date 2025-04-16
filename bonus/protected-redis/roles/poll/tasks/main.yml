@@ -55,12 +55,9 @@
     dest: /etc/systemd/system/poll.service
   notify: Restart poll service
 
-- name: Reload Systemd
-  systemd:
-    daemon_reload: yes
-
 - name: Enable and start the application
   systemd:
+    daemon_reload: true
     name: poll
-    enabled: yes
+    enabled: true
     state: started

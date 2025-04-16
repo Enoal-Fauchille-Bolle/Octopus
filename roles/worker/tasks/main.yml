@@ -76,17 +76,9 @@
     dest: /etc/systemd/system/worker.service
   notify: Restart worker service
 
-- name: Reload Systemd
-  systemd:
-    daemon_reload: yes
-
 - name: Enable and start the application
   systemd:
+    daemon_reload: true
     name: worker
-    enabled: yes
+    enabled: true
     state: started
-
-
-
-
-
