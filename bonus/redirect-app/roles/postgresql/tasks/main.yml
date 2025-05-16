@@ -1,0 +1,92 @@
+- name: Set APT Key
+  become: true
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Set Repository for APT
+  ansible.builtin.apt_repository:
+    repo: deb http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main
+    state: present
+  become: true
+
+- name: Install PostgreSQL 16
+  apt:
+    name:
+      - postgresql-16
+      - postgresql-contrib-16
+      - libpq-dev
+      - python3-psycopg2
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure PostgreSQL is started and enabled
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+  become: true
+
+- name: Create PostgreSQL database
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: "{{ postgres_db }}"
+    state: present
+
+- name: Create PostgreSQL user
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    login_db: "{{ postgres_db }}"
+    name: "{{ postgres_user }}"
+    password: "{{ postgres_password }}"
+    state: present
+
+- name: Check if table 'users' exists
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_query:
+    db: "{{ postgres_db }}"
+    query: "SELECT to_regclass('public.users') AS table_exists;"
+  register: users_table
+
+- name: Load schema.sql if not loaded already
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_query:
+    db: "{{ postgres_db }}"
+    query: "{{ lookup('file', 'schema.sql') }}"
+  when: users_table.query_result[0].table_exists is none
+
+- name: Grant all privileges on all tables in public schema to user
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+    db: "{{ postgres_db }}"
+    objs: ALL_IN_SCHEMA
+    type: table
+    privs: ALL
+    roles: "{{ postgres_user }}"
+    schema: public
+
+- name: Copy PostgreSQL configuration file
+  copy:
+    src: postgresql.conf
+    dest: /etc/postgresql/16/main/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: restart postgresql
+  become: true
+
+- name: Copy PostgreSQL client authentication configuration file
+  copy:
+    src: pg_hba.conf
+    dest: /etc/postgresql/16/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: restart postgresql
+  become: true

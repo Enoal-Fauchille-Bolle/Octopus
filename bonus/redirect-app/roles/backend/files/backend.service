@@ -1,0 +1,14 @@
+[Unit]
+Description=Redirection Backend Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/node src/app.js
+Restart=always
+User=root
+Group=root
+Environment=PATH=/usr/bin:/usr/local/bin
+WorkingDirectory=/opt/app
+
+[Install]
+WantedBy=multi-user.target

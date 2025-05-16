@@ -1,0 +1,307 @@
+################################## Application Settings ##################################
+
+app:
+  # The name of the application
+  application_name: "Azerdev Redirects"
+  # The icon url of the application (png, jpg, jpeg)
+  application_icon: "https://imgur.com/lt5Yflp.png"
+  # The base URL of the application
+  base_url: "{{ base_url }}"
+
+################################### Session Management ###################################
+
+session_management:
+  # The maximum number of sessions a user can have at any given time
+  # 0 means no limit
+  max_sessions_per_user: 3
+  # Token expiry time for short-lived tokens when "remember me" is false
+  short_token_expiry: 1d
+  # Token expiry time for long-lived tokens when "remember me" is true
+  long_token_expiry: 7d
+
+################################### Redirect Configuration ###################################
+
+redirect:
+  # Max length of the original URL
+  max_original_url_length: 2048
+  # Alias generation length
+  alias_length: 6
+  # Alias generation characters
+  alias_characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  # Whether to allow users to choose a redirect alias
+  allow_custom_alias: true
+  # Custom alias min length
+  custom_alias_min_length: 5
+  # Custom alias max length
+  custom_alias_max_length: 20
+  # Whether to use cache mode for redirects
+  # If true, the redirect will be cached in memory for faster access, no expiration, when the server starts
+  use_cache: true
+
+################################### Email Configuration ###################################
+
+email:
+  # The email address from which emails will be sent
+  from_address: "noreply@azerdev.me"
+  # The cooldown period in seconds between resending emails
+  resend_email_cooldown: 60
+
+  reset_password:
+    # The template ID of the email template to be used for the reset password email
+    template_id: "d-ef668d805e4e4cd9a0dda43c435f71fb"
+    # The link to which the user will be redirected when they click the reset password link
+    link: "{{ base_url }}:{{ app_port }}/reset-password?token={% raw %}{{reset_token}}{% endraw %}"
+  verification:
+    # The template ID of the email template to be used for the email verification email
+    template_id: "d-098c1bc30c06490dabd645a76f84df49"
+    # The link to which the user will be redirected when they click the verify email link
+    # The link should contain the token placeholder {% raw %}{{email_verification_token}}{% endraw %}
+    link: "{{ base_url }}:{{ app_port }}/verify-email?token={% raw %}{{email_verification_token}}{% endraw %}"
+  password_changed:
+    # The template ID of the email template to be used for the password changed notification
+    template_id: "d-bdfee65393614293a68f15ef37f6b2db"
+    # The link to which the user will be redirected when they click the link
+    link: "{{ base_url }}:{{ app_port }}/account"
+  account_locked:
+    # The template ID of the email template to be used for the account locked notification
+    template_id: "d-23c93036ec9e476ca9c13336f6a51295"
+    # The link to which the user will be redirected when they click the link
+    # The link should contain the token placeholder {% raw %}{{unlock_token}}{% endraw %}
+    link: "{{ base_url }}:{{ app_port }}/unlock-account?token={% raw %}{{unlock_token}}{% endraw %}"
+  whitelist_country:
+    # The template ID of the email template to be used for the whitelist country notification
+    template_id: "d-e77cc0b0f71a4caa9c0c91fabe008e50"
+    # The link to which the user will be redirected when they click the link
+    # The link should contain the token placeholder {% raw %}{{whitelist_token}}{% endraw %}
+    link: "{{ base_url }}:{{ app_port }}/whitelist-country?token={% raw %}{{whitelist_token}}{% endraw %}"
+  unknown_country:
+    # The template ID of the email template to be used for the unknown country notification
+    template_id: "d-6ba82818c3a44a11a08d26d784fff711"
+    # The link to which the user will be redirected when they click the link
+    link: "{{ base_url }}:{{ app_port }}/account"
+
+################################### Account Security ###################################
+
+password_policy:
+  # Whether to enable the password policy
+  enable_password_policy: true
+  # The minimum length of the password
+  min_length: 8
+  # The maximum length of the password
+  max_length: 50
+  # Whether to require numbers in the password
+  require_numbers: true
+  # Whether to require lowercase characters in the password
+  require_lowercase: true
+  # Whether to require uppercase characters in the password
+  require_uppercase: true
+  # Whether to require special characters in the password
+  require_special_characters: true
+
+# The account lockout feature temporarily disables a user account after a specified number of failed login attempts to prevent unauthorized access.
+account_lockout:
+  # Whether to enable account lockout
+  enable_account_lockout: true
+  # Number of failed login attempts allowed before locking the account
+  max_failed_attempts: 5
+  # Whether to require email verification to unlock the account
+  require_email_verification: true
+  # Duration of the lockout in minutes, only applicable if require_email_verification is false
+  lockout_duration: 15
+
+# The Connection Verification feature allows country's connections to be verified before creating a session.
+connection_verification:
+  # Whether to enable connection verification
+  enable_connection_verification: true
+  # Whether to require email verification to authorize the connection
+  # If false, the connection will succeed without email verification and without whitelist
+  require_email_verification: false
+  # Whitelist token expiry time in minutes
+  whitelist_token_expiry: 60
+
+# General security settings
+general_security:
+  # Whether to block VPN connections
+  block_vpn: true
+
+  # Whether to check domain origin
+  check_domain_origin: true
+  # List of allowed domains
+  allowed_domains:
+    - "redirect.azerdev.me"
+    - "127.0.0.1"
+    - "{{ hostvars[groups['backend'] | first]['ansible_host'] }}"
+
+  # Whether to block unused HTTP methods: HEAD, CONNECT, OPTIONS, TRACE
+  block_unused_http_methods: true
+  # List of allowed HTTP methods
+  allowed_http_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "PATCH"
+    - "OPTIONS"
+
+  # Whether to check the presence of a user-agent in the request header
+  check_user_agent: true
+
+######################################## ReCaptcha ########################################
+
+recaptcha:
+  # Whether to enable ReCaptcha for login
+  enable_recaptcha_login: false
+  # ReCaptcha type for login: normal, invisible
+  recaptcha_type_login: invisible
+
+  # Whether to enable ReCaptcha for registration
+  enable_recaptcha_registration: true
+  # ReCaptcha type for registration: normal, invisible
+  recaptcha_type_registration: normal
+
+  # Whether to enable ReCaptcha for resend email verification
+  enable_recaptcha_resend_email_verification: true
+  # ReCaptcha type for resend email verification: normal, invisible
+  recaptcha_type_resend_email_verification: invisible
+
+  # Whether to enable ReCaptcha for reset password
+  enable_recaptcha_forgot_password: true
+  # ReCaptcha type for reset password: normal, invisible
+  recaptcha_type_forgot_password: normal
+
+################################### Multi-Factor Authentication ###################################
+
+mfa:
+  # Whether to enable multi-factor authentication
+  # Actions that require MFA: login, change password, change email, enable MFA, disable MFA, delete session, delete all sessions, delete account, delete whitelist country
+  # Length of MFA Codes: 6
+  # Length of Backup Codes: 8
+  enable_multi_factor_authentication: true
+  #The amount of backup codes given to the user
+  backup_codes: 10
+
+
+################################### Administration ###################################
+
+admin:
+  # List of emails with admin privileges
+  admin_emails:
+    - "enoal.fauchille@gmail.com"
+  # Whether to force MFA for admins, mfa must be enabled
+  force_mfa_for_admins: false
+
+
+################################### Access Control ###################################
+
+whitelist:
+  # Whether to enable email whitelist
+  # If blacklist is enabled, whitelist will take precedence
+  enable_email_whitelist: true
+  # The list of allowed emails
+  email_whitelist:
+    - "enoal.fauchille@gmail.com"
+    - "butontuto@gmail.com"
+    - "developer.enoal.fauchille@gmail.com"
+
+  # Whether to enable IP whitelist
+  # If blacklist is enabled, whitelist will take precedence
+  enable_ip_whitelist: false
+  # The list of allowed IPs
+  ip_whitelist:
+    - "82.67.83.142"
+    - "109.222.198.133"
+    - "192.168.1.254"
+
+blacklist:
+  # Whether to enable email blacklist
+  # If whitelist is enabled, whitelist will take precedence
+  enable_email_blacklist: true
+  # The list of blocked emails
+  email_blacklist:
+    - "azerty442005.dev@gmail.com"
+
+  # Whether to enable IP blacklist
+  # If whitelist is enabled, whitelist will take precedence
+  enable_ip_blacklist: false
+  # The list of blocked IPs
+  ip_blacklist:
+    - "109.222.198.133"
+
+######################################## Logging ########################################
+
+logging:
+  # Whether to enable logging, this does not disable the console output
+  enable_logging: false
+  # The log level: debug, info, warn, error
+  log_level: debug
+  # The directory where logs will be stored
+  log_dir: "logs"
+  # Whether to use colors in the console output
+  colors: true
+  # Limit of log file size in MB
+  max_size: 1
+  # Limit of request response time in milliseconds before logging a warning
+  max_request_response_time: 2500
+
+################################### Resource Monitoring ###################################
+
+resource_monitoring:
+  # Whether to send a NTFY notification when the memory or CPU usage exceeds the threshold
+  notify: false
+  memory:
+    # Whether to enable memory usage monitoring
+    enable_memory_monitoring: true
+    # Percentage of memory usage at which a warning is issued
+    warning_threshold: 85
+    # Interval between memory checks in milliseconds
+    check_interval: 60000
+  cpu:
+    # Whether to enable CPU usage monitoring
+    enable_cpu_monitoring: true
+    # Percentage of CPU usage at which a warning is issued
+    warning_threshold: 75
+    # Interval between CPU checks in milliseconds
+    check_interval: 60000
+
+###################################### Rate Limiting ######################################
+
+rate_limiting:
+  # Whether to enable rate limiting
+  enable_rate_limiting: true
+  # Ratelimit mode: ip, user, both
+  # ip (only): limit requests based on the IP address
+  # both (ip & user): limit requests based on both the IP address when the user is not authenticated and the user ID when the user is authenticated
+  mode: both
+  # only_ip: true/false
+  # The maximum number of requests a user can make in a given time window
+  max_requests: 100
+  # The time window in seconds
+  time_window: 60
+
+################################### Database Configuration ###################################
+
+# Credentials and connection details are in the .env file
+
+database:
+  # Attempt to connect to the database
+  connection_attempts: 5
+  # Whether to enable database connection checks
+  enable_connection_check: true
+  # Interval between connection checks in seconds
+  connection_check_interval: 300
+
+################################### Swagger Configuration ###################################
+
+swagger:
+  # Whether to enable Swagger
+  enable_swagger: false
+  # The base URL of the Swagger UI
+  base_url: "/api-docs"
+  # # The title of the Swagger UI
+  # title: 'Azerdev API'
+  # # The description of the Swagger UI
+  # description: 'API documentation for Azerdev'
+  # # The version of the Swagger UI
+  # version: '1.0.0'
+  # # The contact email for the Swagger UI
+  # contact_email: '

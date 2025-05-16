@@ -1,0 +1,167 @@
+- name: Import NodeSource GPG key
+  apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
+  become: true
+
+- name: Add NodeSource APT repository for Node.js 20.x
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_20.x {{ ansible_distribution_release }} main"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Install Node.js 20
+  apt:
+    name: nodejs
+    state: present
+  become: true
+
+- name: Ensure nginx user exists
+  ansible.builtin.user:
+    name: nginx
+    state: present
+    system: yes
+    shell: /sbin/nologin
+  become: true
+
+- name: Install nginx
+  become: true
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Ensure nginx is enabled and running
+  become: true
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Copy custom nginx configuration
+  become: true
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+# - name: Install NPM
+#   apt:
+#     name: npm
+#     state: present
+
+- name: Upload application archive
+  copy:
+    src: frontend.tar
+    dest: /opt/frontend.tar
+  register: frontend_archive
+  become: true
+
+- name: Create application directory
+  file:
+    path: /opt/app
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Check if application is already extracted
+  stat:
+    path: /opt/app/config.yaml
+  register: app_extracted
+  become: true
+
+- name: Unzip application
+  unarchive:
+    src: /opt/frontend.tar
+    dest: /opt/app
+    remote_src: yes
+  when: frontend_archive.changed or (not app_extracted.stat.exists)
+  become: true
+
+- name: Generate config.yaml from template
+  template:
+    src: "{{ role_path }}/files/config.yaml.j2"
+    dest: /opt/app/config.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    force: no
+  become: true
+
+- name: Generate environment.ts from template
+  template:
+    src: "{{ role_path }}/files/environment.ts.j2"
+    dest: /opt/app/src/environments/environment.ts
+    owner: root
+    group: root
+    mode: '0644'
+    force: no
+  become: true
+
+- name: Generate environment.development.ts from template
+  template:
+    src: "{{ role_path }}/files/environment.development.ts.j2"
+    dest: /opt/app/src/environments/environment.development.ts
+    owner: root
+    group: root
+    mode: '0644'
+    force: no
+  become: true
+
+- name: Check if node_modules exists
+  stat:
+    path: /opt/app/node_modules
+  register: node_modules_stat
+  become: true
+
+- name: Install node dependencies (only if node_modules doesn't exist)
+  command: npm install --legacy-peer-deps
+  args:
+    chdir: /opt/app/
+  when: not node_modules_stat.stat.exists
+  become: true
+
+- name: Install Angular CLI globally
+  npm:
+    name: "@angular/cli"
+    global: yes
+    state: present
+  become: true
+
+- name: Check if build directory exists
+  stat:
+    path: /opt/app/dist/redirect-azerdev-me/browser
+  register: build_directory
+  become: true
+
+- name: Build Angular app in production mode
+  environment:
+    NODE_OPTIONS: "--max_old_space_size=4096"
+  command: npm run build --configuration=production
+  args:
+    chdir: /opt/app/
+  when: not build_directory.stat.exists
+  become: true
+
+- name: Copy built app to Nginx
+  copy:
+    src: /opt/app/dist/redirect-azerdev-me/browser/
+    dest: /usr/share/nginx/html
+    remote_src: yes
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  register: copy_app_result
+  notify: Reload nginx
+  become: true
+
+- name: Reload nginx to apply changes
+  become: true
+  systemd:
+    name: nginx
+    state: reloaded
+  when: copy_app_result.changed

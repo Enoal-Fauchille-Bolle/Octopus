@@ -1,0 +1,19 @@
+- name: Configure all servers
+  hosts: all
+  roles:
+    - base
+
+# - name: PostgreSQL Service
+#   hosts: postgresql
+#   roles:
+#     - postgresql
+
+# - name: Backend Service
+#   hosts: backend
+#   roles:
+#     - backend
+
+# - name: Frontend Service
+#   hosts: frontend
+#   roles:
+#     - frontend

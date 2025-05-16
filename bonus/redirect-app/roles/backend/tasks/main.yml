@@ -1,0 +1,100 @@
+- name: Import NodeSource GPG key
+  ansible.builtin.apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
+  become: true
+
+- name: Add NodeSource APT repository for Node.js 18.x
+  ansible.builtin.apt_repository:
+    repo: "deb https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Install Node.js 18
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+  become: true
+
+- name: Install NPM
+  apt:
+    name: npm
+    state: present
+  become: true
+
+- name: Upload application archive
+  copy:
+    src: backend.tar
+    dest: /opt/backend.tar
+  register: backend_archive
+  become: true
+
+- name: Create application directory
+  file:
+    path: /opt/app
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Check if application is already extracted
+  stat:
+    path: /opt/app/config.yaml
+  register: app_extracted
+  become: true
+
+- name: Unzip application
+  unarchive:
+    src: /opt/backend.tar
+    dest: /opt/app
+    remote_src: yes
+  when: backend_archive.changed or (not app_extracted.stat.exists)
+  notify: Restart backend service
+  become: true
+
+- name: Generate config.yaml from template
+  template:
+    src: "{{ role_path }}/files/config.yaml.j2"
+    dest: /opt/app/config.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    force: no
+  notify: Restart backend service
+  become: true
+
+- name: Generate .env from template
+  template:
+    src: "{{ role_path }}/files/.env.j2"
+    dest: /opt/app/.env
+    owner: root
+    group: root
+    mode: '0644'
+    force: no
+  notify: Restart backend service
+  become: true
+
+- name: Install dependencies
+  npm:
+    path: /opt/app
+    state: present
+  become: true
+
+- name: Upload Systemd service file
+  copy:
+    src: "{{ role_path }}/files/backend.service"
+    dest: /etc/systemd/system/backend.service
+  notify: Restart backend service
+  become: true
+
+- name: Reload Systemd
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Enable and start the application
+  systemd:
+    name: backend
+    enabled: yes
+    state: started
+  become: true

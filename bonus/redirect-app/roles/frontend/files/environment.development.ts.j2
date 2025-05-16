@@ -1,0 +1,12 @@
+export const environment = {
+    production: false,
+    aliasPrefix: "{{ base_url }}/r/",
+    apiUrl: "{{ base_url }}/api",
+    tokenKey: "auth-token",
+    recaptchaNormalSiteKey: "{{ recaptcha_v2_normal_site_key }}",
+    recaptchaInvisibleSiteKey: "{{ recaptcha_v2_invisible_site_key }}",
+    enableRecaptchaLogin: {{ enable_recaptcha_login }},
+    enableRecaptchaRegister: {{ enable_recaptcha_register }},
+    enableRecaptchaResendEmailVerification: {{ enable_recaptcha_resend_email_verification }},
+    enableRecaptchaForgotPassword: {{ enable_recaptcha_forgot_password }},
+};
