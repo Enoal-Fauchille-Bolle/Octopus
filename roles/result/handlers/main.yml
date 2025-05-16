@@ -2,3 +2,4 @@
   systemd:
     name: result
     state: restarted
+  become: true

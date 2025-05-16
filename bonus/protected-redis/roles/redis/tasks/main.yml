@@ -3,6 +3,7 @@
     name: redis-server
     state: present
   register: redis_install_result
+  become: true
 
 - name: Configure Redis
   template:
@@ -12,6 +13,7 @@
     group: root
     mode: '0644'
   register: redis_conf_result
+  become: true
 
 - name: Restart Redis
   systemd:
@@ -19,3 +21,4 @@
     state: restarted
     enabled: true
   when: redis_install_result.changed or redis_conf_result.changed
+  become: true

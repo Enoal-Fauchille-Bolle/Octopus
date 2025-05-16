@@ -2,28 +2,33 @@
   apt:
     name: nodejs
     state: present
+  become: true
 
 - name: Install NPM
   apt:
     name: npm
     state: present
+  become: true
 
 - name: Upload application archive
   copy:
     src: result.tar
     dest: /opt/result.tar
   register: result_archive
+  become: true
 
 - name: Create application directory
   file:
     path: /opt/result
     state: directory
     mode: '0755'
+  become: true
 
 - name: Check if application is already extracted
   stat:
     path: /opt/result/package.json
   register: app_extracted
+  become: true
 
 - name: Unzip application
   unarchive:
@@ -32,17 +37,20 @@
     remote_src: true
   when: result_archive.changed or (not app_extracted.stat.exists)
   notify: Restart result service
+  become: true
 
 - name: Install dependencies
   npm:
     path: /opt/result
     state: present
+  become: true
 
 - name: Upload Systemd service file
   template:
     src: "{{ role_path }}/files/result.service.j2"
     dest: /etc/systemd/system/result.service
   notify: Restart result service
+  become: true
 
 - name: Enable and start the application
   systemd:
@@ -50,3 +58,4 @@
     name: result
     enabled: true
     state: started
+  become: true

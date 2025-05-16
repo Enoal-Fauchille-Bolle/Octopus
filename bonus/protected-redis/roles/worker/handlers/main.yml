@@ -2,3 +2,4 @@
   systemd:
     name: worker
     state: restarted
+  become: true

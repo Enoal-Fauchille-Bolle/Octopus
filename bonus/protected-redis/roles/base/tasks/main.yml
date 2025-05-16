@@ -1,10 +1,12 @@
 - name: Update APT cache
   apt:
     update_cache: yes
+  become: true
 
 - name: Upgrade the system
   apt:
     upgrade: dist
+  become: true
 
 - name: Install essential packages
   apt:
@@ -26,12 +28,15 @@
       - gnupg
       - software-properties-common
     state: present
+  become: true
 
 - name: Set timezone
   timezone:
     name: Europe/Paris
+  become: true
 
 - name: Change root shell to Zsh
   user:
     name: root
     shell: /bin/zsh
+  become: true

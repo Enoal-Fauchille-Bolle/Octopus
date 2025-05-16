@@ -2,33 +2,39 @@
   apt:
     name: python3
     state: present
+  become: true
 
 - name: Install PIP
   apt:
     name: python3-pip
     state: present
+  become: true
 
 - name: Install python3-venv
   apt:
     name: python3-venv
     state: present
+  become: true
 
 - name: Upload application archive
   copy:
     src: poll.tar
     dest: /opt/poll.tar
   register: poll_archive
+  become: true
 
 - name: Create application directory
   file:
     path: /opt/app
     state: directory
     mode: '0755'
+  become: true
 
 - name: Check if application is already extracted
   stat:
     path: /opt/app/app.py
   register: app_extracted
+  become: true
 
 - name: Unzip application
   unarchive:
@@ -37,18 +43,21 @@
     remote_src: yes
   when: poll_archive.changed or (not app_extracted.stat.exists)
   notify: Restart poll service
+  become: true
 
 - name: Create virtual environment and install dependencies
   ansible.builtin.pip:
     requirements: /opt/app/requirements.txt
     virtualenv: /opt/app/venv
     virtualenv_command: "python3 -m venv"
+  become: true
 
 - name: Upload Systemd service file
   template:
     src: "{{ role_path }}/files/poll.service.j2"
     dest: /etc/systemd/system/poll.service
   notify: Restart poll service
+  become: true
 
 - name: Enable and start the application
   systemd:
@@ -56,3 +65,4 @@
     name: poll
     enabled: true
     state: started
+  become: true
