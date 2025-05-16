@@ -1,14 +1,29 @@
-# Poll Application Deployment with Ansible
+# Octopus
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Goals](#goals)
+- [Features](#features)
+- [Installation & Usage](#installation--usage)
+  - [Prerequisites](#1-prerequisites)
+  - [Inventory structure](#2-inventory-structure)
+  - [Directory Layout](#3-directory-layout)
+  - [Running the Playbook](#4-running-the-playbook)
+  - [Accessing Services](#5-accessing-services)
+- [Contributing](#contributing)
+- [Contributors](#contributors)
+- [License](#license)
 
 ## Overview
 
 This project automates the deployment of a three‑tier poll application using Ansible on five Debian 12 virtual machines. The stack consists of:
 
-* **Flask** web client (“poll”) to accept votes and enqueue them in Redis
+* **Flask** web client ("poll") to accept votes and enqueue them in Redis
 * **Redis** as a queue
 * **Java** worker to consume votes and write them into PostgreSQL
 * **PostgreSQL 16** to store final tallies
-* **Node.js** web client (“result”) to display poll results
+* **Node.js** web client ("result") to display poll results
 
 ## Goals
 
@@ -28,13 +43,15 @@ This project automates the deployment of a three‑tier poll application using A
 
 ## Installation & Usage
 
-1. **Prerequisites**
+### 1. Prerequisites
 
    * Five Debian 12 hosts reachable by SSH as a sudo‑enabled user.
    * Ansible 2.14+ installed locally.
    * Vault password file (e.g. `/tmp/.vault_pass`) containing secrets.
 
-2. **Inventory structure** (`inventory.ini` file):
+### 2. Inventory structure
+
+   The inventory file (`inventory.ini`) should define the hosts and their roles. Here's an example:
 
    ```ini
    [redis]
@@ -53,7 +70,7 @@ This project automates the deployment of a three‑tier poll application using A
    result-1 ansible_host=...
    ```
 
-3. **Directory Layout**
+### 3. Directory Layout
 
    ```
    .
@@ -73,7 +90,7 @@ This project automates the deployment of a three‑tier poll application using A
        └── result/
    ```
 
-4. **Running the Playbook**
+### 4. Running the Playbook
 
    ```bash
    export ANSIBLE_VAULT_PASSWORD_FILE=/tmp/.vault_pass
@@ -84,7 +101,7 @@ This project automates the deployment of a three‑tier poll application using A
    * On first run, all tasks execute.
    * On subsequent runs, idempotence ensures `changed = 0` for completed roles.
 
-5. **Accessing Services**
+### 5. Accessing Services
 
    * **Poll UI**: (Accessible from `poll-1` host)
    * **Result UI**: (Accessible from `result-1` host)
